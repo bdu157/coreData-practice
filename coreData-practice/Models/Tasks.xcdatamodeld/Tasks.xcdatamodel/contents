@@ -5,6 +5,6 @@
         <attribute name="notes" optional="YES" attributeType="String" syncable="YES"/>
     </entity>
     <elements>
-        <element name="Task" positionX="-63" positionY="-18" width="128" height="75"/>
+        <element name="Task" positionX="-54" positionY="-9" width="128" height="75"/>
     </elements>
 </model>

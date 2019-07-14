@@ -13,6 +13,7 @@ class TaskDetailViewController: UIViewController {
     @IBOutlet weak var nameTextField: UITextField!
     @IBOutlet weak var notesTextView: UITextView!
     @IBOutlet weak var saveButton: UIBarButtonItem!
+    @IBOutlet weak var prioritySegmentedControl: UISegmentedControl!
     
     var task: Task? {
         didSet {
@@ -31,15 +32,19 @@ class TaskDetailViewController: UIViewController {
         guard let taskName = self.nameTextField.text,
             !taskName.isEmpty else {return}
         
+        let priorityIndex = prioritySegmentedControl.selectedSegmentIndex
+        let priority = TaskPriority.allCases[priorityIndex]
+        
         let notes = self.notesTextView.text
         
         if let task = self.task {
             //Edit existing task
             task.name = taskName
+            task.priority = priority.rawValue
             task.notes = notes
         } else {
             //create a new task
-            let _ = Task(name: taskName, notes: notes)
+            let _ = Task(name: taskName, notes: notes, priority: priority)
         }
         
         do {
@@ -54,6 +59,18 @@ class TaskDetailViewController: UIViewController {
     private func updateViews() {
         guard isViewLoaded else {return}
         
+        //because priority comes as string - rawvalue, you need a logic to show selectedSegmentIndex (updateViews()) corresponds to rawvalue
+        let priority: TaskPriority
+        if let taskPriority = task?.priority {  //if string - rawvalue gets passed through task:Task?, change priority to its rawvalue otherwise set the priority to .normal
+            priority = TaskPriority(rawValue: taskPriority)!
+        } else {
+            priority = .normal
+        }
+        
+        //once you know the rawvalue of the priorty - enum, set the selectedSegmentIndex to match index of the enum value so updateViews() would show correct segmentedControl
+        prioritySegmentedControl.selectedSegmentIndex = TaskPriority.allCases.firstIndex(of: priority)!
+        
+    
         self.title = self.task?.name ??  "Create Task"
         self.nameTextField.text = task?.name
         self.notesTextView.text = task?.notes
