@@ -42,6 +42,14 @@ class TasksTableViewController: UITableViewController, NSFetchedResultsControlle
         super.viewWillAppear(animated)
         self.tableView.reloadData()
     }
+    
+    @IBAction func refreshControl(_ sender: Any) {
+        self.taskController.fetchTaskFromServer { (_) in
+            DispatchQueue.main.async {
+                self.refreshControl?.endRefreshing()
+            }
+        }
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
