@@ -16,7 +16,6 @@ class TasksTableViewController: UITableViewController, NSFetchedResultsControlle
     lazy var fetchedResultsController: NSFetchedResultsController<Task> = {
         let fetchRequest: NSFetchRequest<Task> = Task.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "priority", ascending: true), NSSortDescriptor(key: "name", ascending: true)]
-        
         let moc = CoreDataStack.shared.mainContext
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "priority", cacheName: nil)
         frc.delegate = self
@@ -36,6 +35,8 @@ class TasksTableViewController: UITableViewController, NSFetchedResultsControlle
 //            return []
 //        }
 //    }
+    
+    var taskController = TaskController()
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -74,15 +75,25 @@ class TasksTableViewController: UITableViewController, NSFetchedResultsControlle
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             let task = self.fetchedResultsController.object(at: indexPath)
-            let moc = CoreDataStack.shared.mainContext
-            moc.delete(task)
-            do {
-                try moc.save()
-                self.tableView.reloadData()
-            } catch {
-                moc.reset()
-                NSLog("Error saving managed object context: \(error)")
+            
+            taskController.delete(task) { (error) in
+                if let error = error {
+                    NSLog("Error deleting task from server: \(error)")
+                    return
+                }
+                
+                //reason why these codes below were moved in taskController.delete is because you want to delete task in firebase and the device together
+                let moc = CoreDataStack.shared.mainContext
+                moc.delete(task)
+                do {
+                    try moc.save()
+                    self.tableView.reloadData()
+                } catch {
+                    moc.reset()
+                    NSLog("Error saving managed object context: \(error)")
+                }
             }
+            
             //tableView.deleteRows(at: [indexPath], with: .fade)
         }
     }
@@ -145,6 +156,10 @@ class TasksTableViewController: UITableViewController, NSFetchedResultsControlle
             let detailVC = segue.destination as? TaskDetailViewController,
             let selectedRow = self.tableView.indexPathForSelectedRow {
             detailVC.task = self.fetchedResultsController.object(at: selectedRow)
+            detailVC.taskController = self.taskController
+        } else if segue.identifier == "ShowCreateTask" {
+            guard let detailVC = segue.destination as? TaskDetailViewController else {return}
+            detailVC.taskController = self.taskController
         }
     }
     

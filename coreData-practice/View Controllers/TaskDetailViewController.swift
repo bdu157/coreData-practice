@@ -21,6 +21,8 @@ class TaskDetailViewController: UIViewController {
         }
     }
 
+    var taskController: TaskController!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.updateViews()
@@ -42,9 +44,11 @@ class TaskDetailViewController: UIViewController {
             task.name = taskName
             task.priority = priority.rawValue
             task.notes = notes
+            self.taskController.put(task: task)
         } else {
             //create a new task
-            let _ = Task(name: taskName, notes: notes, priority: priority)
+            let task = Task(name: taskName, notes: notes, priority: priority)
+            self.taskController.put(task: task)
         }
         
         do {
